@@ -1,153 +1,567 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>決定輪盤</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>手繪轉盤</title>
+
+  <!-- 主頁小圖示（你之後把 icon.png 上傳到 repo 根目錄即可生效） -->
+  <link rel="icon" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+
   <style>
-    body {
-      font-family: "Comic Sans MS", "Noto Sans TC", sans-serif;
-      background: #f6f1e9;
-      display: flex;
+    :root{
+      --bg:#f6f1e6;
+      --ink:#2b2b2b;
+      --muted:#6b6b6b;
+      --card:#ffffffcc;
+      --shadow: 0 10px 25px rgba(0,0,0,.12);
+      --radius: 18px;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background: radial-gradient(1200px 800px at 20% 0%, #fff, var(--bg));
+      color:var(--ink);
+      padding: 18px 14px 40px;
+    }
+
+    .wrap{
+      max-width: 720px;
+      margin: 0 auto;
+      display: grid;
+      gap: 14px;
+    }
+
+    .title{
+      text-align:center;
+      font-weight: 800;
+      letter-spacing: .06em;
+      font-size: clamp(22px, 4.5vw, 34px);
+      margin: 10px 0 2px;
+    }
+
+    .card{
+      background: var(--card);
+      border: 2px solid rgba(43,43,43,.18);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    /* wheel area */
+    .wheelArea{
+      display:flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
+      align-items:center;
+      gap: 10px;
+      padding: 12px 10px 14px;
     }
 
-    h1 {
-      margin-bottom: 12px;
-    }
-
-    .wheel-wrapper {
+    .wheelBox{
       position: relative;
-      width: 280px;
-      height: 280px;
+      width: min(360px, 92vw);
+      aspect-ratio: 1/1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-top: 6px;
     }
 
-    .pointer {
-      position: absolute;
+    canvas{
+      width: 100%;
+      height: 100%;
+      display:block;
+      border-radius: 50%;
+    }
+
+    /* pointer (正向：往下指到轉盤) */
+    .pointer{
+      position:absolute;
       top: -10px;
       left: 50%;
       transform: translateX(-50%);
-      width: 0;
-      height: 0;
+      width: 0; height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-bottom: 30px solid var(--ink);
+      filter: drop-shadow(0 4px 0 rgba(0,0,0,.15));
+    }
+    .pointer::after{
+      content:"";
+      position:absolute;
+      left:-12px;
+      top:6px;
+      width:0;height:0;
       border-left: 12px solid transparent;
-      border-right: 12px solid transparent;
-      border-bottom: 24px solid #333;
-      z-index: 10;
+      border-right:12px solid transparent;
+      border-bottom: 20px solid #f4a63a;
     }
 
-    canvas {
-      border-radius: 50%;
+    .btnRow{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content:center;
+      margin-top: 4px;
+    }
+
+    button{
+      appearance:none;
+      border:none;
+      background:none;
+      font: inherit;
+      cursor:pointer;
+    }
+
+    .btn{
+      padding: 12px 16px;
+      border-radius: 14px;
+      border: 2px solid rgba(43,43,43,.25);
+      background: #ffe3a2;
+      box-shadow: 0 6px 0 rgba(0,0,0,.12);
+      font-weight: 800;
+      letter-spacing:.06em;
+      min-width: 120px;
+    }
+    .btn:active{ transform: translateY(2px); box-shadow: 0 4px 0 rgba(0,0,0,.12); }
+    .btn.secondary{
+      background: #ffffff;
+    }
+    .btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+      filter: grayscale(.2);
+    }
+
+    .result{
+      text-align:center;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      margin-top: 6px;
+    }
+    .hint{
+      text-align:center;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+
+    /* inputs */
+    .inputsTitle{
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .inputsTitle h2{
+      margin:0;
+      font-size: 16px;
+      letter-spacing:.04em;
+    }
+    .inputsTitle .small{
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .field{
+      display:flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label{
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing:.03em;
+    }
+
+    input{
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 2px solid rgba(43,43,43,.18);
       background: #fff;
+      outline: none;
+      font-size: 16px;
+    }
+    input:focus{
+      border-color: rgba(43,43,43,.38);
+      box-shadow: 0 0 0 4px rgba(244,166,58,.18);
     }
 
-    button {
-      margin-top: 20px;
-      padding: 12px 24px;
-      font-size: 18px;
-      border: 3px solid #333;
-      border-radius: 12px;
-      background: #ffcf70;
-      cursor: pointer;
-    }
-
-    button:active {
-      transform: scale(0.96);
-    }
-
-    .result {
-      margin-top: 12px;
-      font-size: 18px;
+    @media (max-width: 420px){
+      .grid{ grid-template-columns: 1fr; }
+      .btn{ min-width: 46%; }
     }
   </style>
 </head>
+
 <body>
+  <div class="wrap">
+    <div class="title">今天要選什麼？</div>
 
-<h1>今天要選什麼？</h1>
+    <div class="card wheelArea">
+      <div class="wheelBox" aria-label="轉盤">
+        <div class="pointer" aria-hidden="true"></div>
+        <canvas id="wheel" width="720" height="720"></canvas>
+      </div>
 
-<div class="wheel-wrapper">
-  <div class="pointer"></div>
-  <canvas id="wheel" width="280" height="280"></canvas>
-</div>
+      <div class="btnRow">
+        <!-- 開始鍵：按下就轉 -->
+        <button id="startBtn" class="btn" disabled>開始</button>
+        <button id="applyBtn" class="btn secondary">套用選項</button>
+        <button id="clearBtn" class="btn secondary">清空</button>
+      </div>
 
-<button onclick="spin()">轉一下</button>
-<div class="result" id="result"></div>
+      <div id="result" class="result">結果是：—</div>
+      <div class="hint">
+        至少填 2 個選項才可開始。<br/>
+        2/3/4 個選項會自動倍增成 6/6/8 格，避免只剩對半。
+      </div>
+    </div>
 
-<script>
-  const options = [
-    "選項一",
-    "選項二",
-    "選項三",
-    "選項四",
-    "選項五",
-    "選項六",
-    "選項七",
-    "選項八"
-  ];
+    <div class="card">
+      <div class="inputsTitle">
+        <h2>可填選項（最多 8 格）</h2>
+        <div class="small">留空會自動忽略</div>
+      </div>
 
-  const canvas = document.getElementById("wheel");
-  const ctx = canvas.getContext("2d");
-  const radius = canvas.width / 2;
-  const slice = (2 * Math.PI) / options.length;
-  let angle = 0;
+      <div class="grid" id="inputsGrid">
+        <!-- JS 產生 8 格 -->
+      </div>
+    </div>
+  </div>
 
-  function drawWheel() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  <script>
+    // ====== 倍增規則（你選的 B）======
+    function calcDisplayCount(n){
+      if (n <= 1) return 0;
+      if (n === 2) return 6;   // 2 -> 6
+      if (n === 3) return 6;   // 3 -> 6
+      if (n === 4) return 8;   // 4 -> 8
+      return n;                // 5+ -> 原樣
+    }
 
-    options.forEach((text, i) => {
-      const start = angle + i * slice;
-      const end = start + slice;
+    function buildDisplayOptions(options){
+      const n = options.length;
+      const displayN = calcDisplayCount(n);
+      if (!displayN) return { n, displayN, displayOptions: [] };
+      const displayOptions = Array.from({ length: displayN }, (_, i) => options[i % n]);
+      return { n, displayN, displayOptions };
+    }
 
-      ctx.beginPath();
-      ctx.moveTo(radius, radius);
-      ctx.arc(radius, radius, radius - 4, start, end);
-      ctx.fillStyle = i % 2 === 0 ? "#ffd9c9" : "#c9e4ff";
-      ctx.fill();
-      ctx.strokeStyle = "#333";
-      ctx.lineWidth = 3;
-      ctx.stroke();
+    function mapToRealResult(options, displayIndex){
+      const n = options.length;
+      return options[displayIndex % n];
+    }
 
+    // ====== DOM ======
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const inputsGrid = document.getElementById('inputsGrid');
+    const startBtn = document.getElementById('startBtn');
+    const applyBtn = document.getElementById('applyBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const resultEl = document.getElementById('result');
+
+    // 8 格輸入
+    const inputEls = [];
+    for(let i=1;i<=8;i++){
+      const wrap = document.createElement('div');
+      wrap.className = 'field';
+      wrap.innerHTML = `
+        <label>選項 ${i}</label>
+        <input type="text" maxlength="20" placeholder="例如：火鍋 / 壽司 / 咖哩" />
+      `;
+      const input = wrap.querySelector('input');
+      input.addEventListener('input', () => {
+        // 打字就先套用（不轉），並更新開始按鈕狀態
+        syncAndDraw();
+      });
+      inputEls.push(input);
+      inputsGrid.appendChild(wrap);
+    }
+
+    // ====== 手繪配色 ======
+    const pastel = [
+      '#f7b3b3', '#f9d7a6', '#f5f2a0', '#bfe7c8',
+      '#aee1e8', '#b6c7ff', '#d4b6ff', '#f2b6e3'
+    ];
+
+    // ====== 轉盤狀態 ======
+    let options = [];
+    let displayOptions = [];
+    let displayN = 0;
+
+    let rotation = 0;          // 目前角度（弧度）
+    let spinning = false;
+
+    // ====== 手繪感繪製工具 ======
+    function rand(min, max){ return Math.random()*(max-min)+min; }
+
+    function drawHandStrokeCircle(cx, cy, r, lineW){
       ctx.save();
-      ctx.translate(radius, radius);
-      ctx.rotate(start + slice / 2);
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#333";
-      ctx.font = "16px sans-serif";
-      ctx.fillText(text, radius - 16, 6);
+      ctx.lineWidth = lineW;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(43,43,43,.95)';
+
+      // 用很多小段 + 微抖動做出「手繪圈」
+      const steps = 140;
+      ctx.beginPath();
+      for(let i=0;i<=steps;i++){
+        const t = (i/steps) * Math.PI*2;
+        const jitter = rand(-1.6, 1.6);
+        const rr = r + jitter;
+        const x = cx + Math.cos(t)*rr;
+        const y = cy + Math.sin(t)*rr;
+        if(i===0) ctx.moveTo(x,y);
+        else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
       ctx.restore();
-    });
-  }
+    }
 
-  drawWheel();
+    function watercolorTexture(x, y, w, h, alpha=0.07){
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      for(let i=0;i<260;i++){
+        const px = x + Math.random()*w;
+        const py = y + Math.random()*h;
+        const pr = rand(8, 22);
+        ctx.beginPath();
+        ctx.arc(px, py, pr, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+        ctx.fill();
+      }
+      ctx.restore();
+    }
 
-  function spin() {
-    const spins = Math.random() * 2000 + 2000;
-    const startAngle = angle;
-    const startTime = performance.now();
+    function drawWheel(){
+      const W = canvas.width, H = canvas.height;
+      const cx = W/2, cy = H/2;
+      const outerR = Math.min(W,H)*0.44;
+      const innerR = outerR*0.08;
 
-    function animate(time) {
-      const t = Math.min((time - startTime) / 2000, 1);
-      const ease = 1 - Math.pow(1 - t, 3);
-      angle = startAngle + (spins * ease * Math.PI / 180);
+      // 背景
+      ctx.clearRect(0,0,W,H);
+
+      // 盤面陰影
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy+14, outerR*1.02, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(0,0,0,.08)';
+      ctx.fill();
+      ctx.restore();
+
+      // 沒選項時畫空盤
+      if(displayN < 2){
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, outerR, 0, Math.PI*2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        watercolorTexture(cx-outerR, cy-outerR, outerR*2, outerR*2, 0.06);
+        drawHandStrokeCircle(cx, cy, outerR, 10);
+        drawHandStrokeCircle(cx, cy, outerR*0.88, 6);
+
+        // 中心點
+        ctx.beginPath();
+        ctx.arc(cx, cy, innerR*3.2, 0, Math.PI*2);
+        ctx.fillStyle = '#d94a4a';
+        ctx.fill();
+        drawHandStrokeCircle(cx, cy, innerR*3.2, 6);
+        ctx.restore();
+        return;
+      }
+
+      const seg = (Math.PI*2) / displayN;
+      const base = -Math.PI/2; // 讓「指標」在正上方（12點方向）
+
+      // 扇形
+      for(let i=0;i<displayN;i++){
+        const startA = rotation + base + i*seg;
+        const endA   = startA + seg;
+
+        // 扇形填色
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, outerR*0.98, startA, endA);
+        ctx.closePath();
+        ctx.fillStyle = pastel[i % pastel.length];
+        ctx.fill();
+
+        // 水彩顆粒（只在扇形內）
+        ctx.clip();
+        watercolorTexture(cx-outerR, cy-outerR, outerR*2, outerR*2, 0.055);
+        ctx.restore();
+
+        // 分隔線（手繪感）
+        ctx.save();
+        ctx.strokeStyle = 'rgba(43,43,43,.9)';
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(startA)*(outerR*0.98), cy + Math.sin(startA)*(outerR*0.98));
+        ctx.stroke();
+        ctx.restore();
+
+        // 文字
+        const text = displayOptions[i] || '';
+        const midA = (startA + endA)/2;
+        const txR = outerR*0.62;
+        const tx = cx + Math.cos(midA)*txR;
+        const ty = cy + Math.sin(midA)*txR;
+
+        ctx.save();
+        ctx.translate(tx, ty);
+        ctx.rotate(midA + Math.PI/2); // 文字沿扇形方向
+        ctx.fillStyle = 'rgba(43,43,43,.92)';
+        ctx.font = '800 34px system-ui, -apple-system, "Noto Sans TC", "Microsoft JhengHei", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // 文字描邊讓手寫更清晰
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = 'rgba(255,255,255,.7)';
+        ctx.strokeText(text, 0, 0);
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
+      }
+
+      // 外圈雙圈手繪線
+      drawHandStrokeCircle(cx, cy, outerR, 12);
+      drawHandStrokeCircle(cx, cy, outerR*0.88, 7);
+
+      // 中心紅點
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, outerR*0.09, 0, Math.PI*2);
+      ctx.fillStyle = '#d94a4a';
+      ctx.fill();
+      drawHandStrokeCircle(cx, cy, outerR*0.09, 8);
+      ctx.restore();
+    }
+
+    function getOptionsFromInputs(){
+      const vals = inputEls
+        .map(i => i.value.trim())
+        .filter(v => v.length > 0);
+
+      // 去掉完全相同的重複（避免你不小心貼兩次）
+      const seen = new Set();
+      const uniq = [];
+      for(const v of vals){
+        if(!seen.has(v)){
+          seen.add(v);
+          uniq.push(v);
+        }
+      }
+      return uniq;
+    }
+
+    function syncAndDraw(){
+      options = getOptionsFromInputs();
+      const built = buildDisplayOptions(options);
+      displayN = built.displayN;
+      displayOptions = built.displayOptions;
+
+      startBtn.disabled = !(options.length >= 2) || spinning;
       drawWheel();
 
-      if (t < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        const index = Math.floor(
-          options.length - (angle % (2 * Math.PI)) / slice
-        ) % options.length;
-        document.getElementById("result").innerText =
-          "結果是：" + options[index];
+      if(options.length < 2){
+        resultEl.textContent = '結果是：—';
       }
     }
 
-    requestAnimationFrame(animate);
-  }
-</script>
+    // 轉動：挑一個 displayIndex，讓那格停在「正上方指標下」
+    function spin(){
+      if(spinning) return;
+      if(options.length < 2) return;
 
+      spinning = true;
+      startBtn.disabled = true;
+
+      const seg = (Math.PI*2) / displayN;
+
+      // 均勻隨機抽 displayIndex（視覺上每格機率一致）
+      const targetIndex = Math.floor(Math.random()*displayN);
+
+      // 讓目標格中心對準指標：
+      // 指標在 base = -pi/2，選擇公式 index = floor(((-rotation mod 2pi))/seg)
+      // 對準中心 -> rotationEnd = -((targetIndex + 0.5)*seg) + k*2pi
+      const fullTurns = 6 + Math.floor(Math.random()*3); // 6~8圈
+      const rotationEnd = -((targetIndex + 0.5) * seg) + fullTurns * Math.PI*2;
+
+      const start = rotation;
+      const delta = rotationEnd - start;
+      const dur = 2200 + Math.random()*600; // 2.2~2.8s
+      const t0 = performance.now();
+
+      function easeOutCubic(t){ return 1 - Math.pow(1-t, 3); }
+
+      function frame(now){
+        const t = Math.min(1, (now - t0) / dur);
+        rotation = start + delta * easeOutCubic(t);
+        drawWheel();
+
+        if(t < 1){
+          requestAnimationFrame(frame);
+        }else{
+          spinning = false;
+
+          // 算停下來時，指標下是哪一格
+          const twopi = Math.PI*2;
+          let r = (-rotation) % twopi;
+          if(r < 0) r += twopi;
+          const landedIndex = Math.floor(r / seg);
+
+          const real = mapToRealResult(options, landedIndex);
+          resultEl.textContent = `結果是：${real}`;
+
+          startBtn.disabled = !(options.length >= 2);
+        }
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    // ====== buttons ======
+    startBtn.addEventListener('click', spin);
+
+    applyBtn.addEventListener('click', () => {
+      if(spinning) return;
+      syncAndDraw();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if(spinning) return;
+      inputEls.forEach(i => i.value = '');
+      rotation = 0;
+      syncAndDraw();
+    });
+
+    // 初始
+    // 先給你一些預設示例（你不想要就刪掉也行）
+    inputEls[0].value = '火鍋';
+    inputEls[1].value = '壽司';
+    inputEls[2].value = '咖哩';
+    inputEls[3].value = '牛肉麵';
+    syncAndDraw();
+  </script>
 </body>
 </html>
+
