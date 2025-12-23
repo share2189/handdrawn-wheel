@@ -5,28 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>今天要選什麼？｜手繪轉盤</title>
 
-  <!-- 內嵌 favicon（輪盤） -->
-  <link rel="icon" href='data:image/svg+xml;utf8,
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-    <defs>
-      <radialGradient id="g" cx="40%" cy="35%" r="70%">
-        <stop offset="0" stop-color="%23ffffff"/>
-        <stop offset="1" stop-color="%23f2efe7"/>
-      </radialGradient>
-    </defs>
-    <rect width="128" height="128" rx="26" fill="url(%23g)"/>
-    <circle cx="64" cy="64" r="46" fill="%23fff8" stroke="%23222" stroke-width="6"/>
-    <circle cx="64" cy="64" r="6" fill="%23d43" stroke="%23222" stroke-width="3"/>
-    <path d="M64 18 L50 40 L78 40 Z" fill="%23f0a" opacity=".0"/>
-    <path d="M64 10 L46 40 L82 40 Z" fill="%23f4a63a" stroke="%23222" stroke-width="5" />
-    <path d="M64 20 L64 64" stroke="%23222" stroke-width="5"/>
-    <path d="M64 64 L100 64" stroke="%23222" stroke-width="4"/>
-    <path d="M64 64 L82 94" stroke="%23222" stroke-width="4"/>
-    <path d="M64 64 L44 90" stroke="%23222" stroke-width="4"/>
-    <path d="M64 64 L28 64" stroke="%23222" stroke-width="4"/>
-    <path d="M64 64 L48 34" stroke="%23222" stroke-width="4"/>
-  </svg>' />
-
   <style>
     :root{
       --bg: #f3efe7;
@@ -37,7 +15,6 @@
       --soft-shadow: 0 10px 26px rgba(0,0,0,.10);
       --btn: #f5d98f;
       --btn2: #ffffff;
-      --line: rgba(0,0,0,.18);
       --radius: 22px;
       --wheelSize: min(78vw, 420px);
     }
@@ -56,10 +33,7 @@
       padding: 20px 14px 40px;
     }
 
-    .wrap{
-      max-width: 560px;
-      margin: 0 auto;
-    }
+    .wrap{ max-width: 560px; margin: 0 auto; }
 
     h1{
       margin: 8px 0 14px;
@@ -78,7 +52,6 @@
       backdrop-filter: blur(10px);
     }
 
-    /* wheel stage */
     .wheelStage{
       position: relative;
       display:flex;
@@ -86,18 +59,18 @@
       padding: 18px 0 10px;
     }
 
-    /* pointer (尖端朝下，指向轉盤內) */
+    /* 指標：尖端朝下，指向輪盤內 */
     .pointer{
       position:absolute;
-      top: 6px;
+      top: 8px;
       left: 50%;
       transform: translateX(-50%);
       width:0; height:0;
       border-left: 18px solid transparent;
       border-right: 18px solid transparent;
-      border-top: 30px solid var(--ink);
-      filter: drop-shadow(0 5px 0 rgba(0,0,0,.12));
-      z-index: 30;
+      border-top: 30px solid rgba(0,0,0,.85);
+      filter: drop-shadow(0 6px 0 rgba(0,0,0,.12));
+      z-index: 60;
     }
     .pointer::after{
       content:"";
@@ -110,7 +83,6 @@
       border-top: 20px solid #f4a63a;
     }
 
-    /* wheel */
     .wheelWrap{
       position: relative;
       width: var(--wheelSize);
@@ -126,11 +98,10 @@
       position: relative;
       transform: rotate(0deg);
       will-change: transform;
-      transition: transform 0ms;
       filter: drop-shadow(0 18px 16px rgba(0,0,0,.15));
+      user-select:none;
     }
 
-    /* 手繪外框：兩圈 + 不規則陰影 */
     .wheel::before{
       content:"";
       position:absolute;
@@ -143,51 +114,27 @@
       filter: blur(1px);
     }
 
-    .rim{
-      position:absolute; inset:0;
-      border-radius:50%;
-      background:
-        radial-gradient(circle, transparent 62%, rgba(0,0,0,.12) 63%, transparent 66%),
-        radial-gradient(circle, rgba(255,255,255,.65) 0 58%, transparent 60%),
-        radial-gradient(circle, transparent 70%, rgba(0,0,0,.12) 71%, transparent 74%);
-      pointer-events:none;
-    }
-
     .inkRing{
       position:absolute; inset:0;
       border-radius:50%;
-      border: 6px solid rgba(0,0,0,.75);
+      border: 6px solid rgba(0,0,0,.78);
       box-shadow:
         inset 0 0 0 4px rgba(255,255,255,.35),
         inset 0 0 0 10px rgba(0,0,0,.10);
       pointer-events:none;
-      filter: blur(.15px);
+      z-index: 10;
     }
 
-    /* 中心鈕 */
-    .hub{
-      position:absolute;
-      width: 46px;
-      height: 46px;
-      border-radius:50%;
-      background:
-        radial-gradient(circle at 35% 30%, rgba(255,255,255,.85), rgba(255,255,255,.2) 35%, transparent 36%),
-        radial-gradient(circle at 60% 70%, rgba(0,0,0,.12), transparent 55%),
-        #d94135;
-      border: 4px solid rgba(0,0,0,.75);
-      z-index: 8;
-      box-shadow: 0 8px 12px rgba(0,0,0,.18);
-    }
-
-    /* 轉盤面（用 JS 置入 conic-gradient） */
     .face{
-      position:absolute; inset:8px;
-      border-radius:50%;
+      position:absolute;
+      inset: 8px;
+      border-radius: 50%;
       overflow:hidden;
       background: #fff;
+      z-index: 1;
     }
 
-    /* 水彩紙感顆粒（純 CSS） */
+    /* 水彩紙感顆粒 */
     .paperGrain{
       position:absolute; inset:0;
       background:
@@ -198,51 +145,59 @@
       mix-blend-mode: multiply;
       pointer-events:none;
       opacity:.75;
+      z-index: 3;
     }
 
-    /* 扇形分隔線（手繪感） */
-    .spokes{
-      position:absolute; inset:0;
+    /* 分隔線：用 SVG 畫在 face 內，永遠不會分離 */
+    .spokesSvg{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      z-index: 4;
       pointer-events:none;
       filter: drop-shadow(0 2px 0 rgba(0,0,0,.08));
     }
-    .spoke{
-      position:absolute;
-      left:50%; top:50%;
-      width: 4px;
-      height: 50%;
-      background: rgba(0,0,0,.72);
-      transform-origin: 50% 100%;
-      border-radius: 12px;
-      opacity:.95;
-    }
 
-    /* 文字標籤 */
+    /* 文字標籤：放在 face 裡面一起轉 */
     .labels{
-      position:absolute; inset:0;
+      position:absolute;
+      inset:0;
+      z-index: 5;
       pointer-events:none;
-      z-index: 6;
     }
     .label{
       position:absolute;
-      left:50%; top:50%;
+      left:50%;
+      top:50%;
       transform-origin: 0 0;
       font-weight: 900;
       font-size: 20px;
-      color: rgba(0,0,0,.75);
+      color: rgba(0,0,0,.80);
       text-shadow:
-        0 2px 0 rgba(255,255,255,.55),
+        0 2px 0 rgba(255,255,255,.60),
         0 0 10px rgba(255,255,255,.35);
       white-space: nowrap;
-      user-select:none;
       letter-spacing:.5px;
     }
 
-    /* controls */
-    .controls{
-      margin-top: 10px;
-      display:grid;
-      gap: 10px;
+    /* 中心紅球（固定在正中心） */
+    .hub{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform: translate(-50%, -50%);
+      width: 54px;
+      height: 54px;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 35% 30%, rgba(255,255,255,.90), rgba(255,255,255,.25) 35%, transparent 36%),
+        radial-gradient(circle at 60% 70%, rgba(0,0,0,.14), transparent 55%),
+        #d94135;
+      border: 4px solid rgba(0,0,0,.80);
+      z-index: 70;
+      box-shadow: 0 10px 14px rgba(0,0,0,.18);
+      pointer-events:none;
     }
 
     .btnRow{
@@ -250,7 +205,7 @@
       gap: 12px;
       justify-content:center;
       flex-wrap: wrap;
-      margin-top: 6px;
+      margin-top: 10px;
     }
     button{
       border: 2px solid rgba(0,0,0,.20);
@@ -268,17 +223,24 @@
       border-color: rgba(0,0,0,.18);
       min-width: 170px;
     }
-    button.secondary{
-      min-width: 170px;
+    button.secondary{ min-width: 170px; }
+    button.ghost{ background: rgba(255,255,255,.55); min-width: 170px; }
+    button:disabled{ opacity:.45; cursor:not-allowed; filter: grayscale(.2); }
+
+    .result{
+      text-align:center;
+      margin-top: 10px;
+      font-size: 22px;
+      font-weight: 1000;
+      letter-spacing:.5px;
     }
-    button.ghost{
-      background: rgba(255,255,255,.55);
-      min-width: 170px;
-    }
-    button:disabled{
-      opacity:.45;
-      cursor:not-allowed;
-      filter: grayscale(.2);
+    .hint{
+      text-align:center;
+      margin-top: 6px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.4;
     }
 
     .grid{
@@ -289,17 +251,8 @@
       padding: 10px 8px 0;
       border-top: 1px dashed rgba(0,0,0,.18);
     }
-
-    .field{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-    .field label{
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 800;
-    }
+    .field{ display:flex; flex-direction:column; gap:6px; }
+    .field label{ font-size: 13px; color: var(--muted); font-weight: 800; }
     .field input{
       width:100%;
       border-radius: 14px;
@@ -313,22 +266,6 @@
     .field input:focus{
       border-color: rgba(0,0,0,.28);
       box-shadow: 0 0 0 3px rgba(245,217,143,.45);
-    }
-
-    .result{
-      text-align:center;
-      margin-top: 8px;
-      font-size: 22px;
-      font-weight: 1000;
-      letter-spacing:.5px;
-    }
-    .hint{
-      text-align:center;
-      margin-top: 6px;
-      font-size: 14px;
-      color: var(--muted);
-      font-weight: 700;
-      line-height: 1.4;
     }
 
     @media (max-width: 420px){
@@ -351,12 +288,10 @@
           <div class="wheel" id="wheel">
             <div class="face" id="face">
               <div class="paperGrain"></div>
+              <svg class="spokesSvg" id="spokesSvg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+              <div class="labels" id="labels"></div>
             </div>
 
-            <div class="spokes" id="spokes"></div>
-            <div class="labels" id="labels"></div>
-
-            <div class="rim"></div>
             <div class="inkRing"></div>
             <div class="hub" aria-hidden="true"></div>
           </div>
@@ -375,9 +310,7 @@
         2/3/5/7 個選項會自動倍增成 4/6/8 格，避免只剩對半。
       </div>
 
-      <div class="grid" id="inputs">
-        <!-- JS 產生 8 格 -->
-      </div>
+      <div class="grid" id="inputs"></div>
     </div>
   </div>
 
@@ -385,7 +318,7 @@
 (() => {
   const wheel = document.getElementById('wheel');
   const face  = document.getElementById('face');
-  const spokes = document.getElementById('spokes');
+  const spokesSvg = document.getElementById('spokesSvg');
   const labels = document.getElementById('labels');
   const inputs = document.getElementById('inputs');
   const btnSpin = document.getElementById('btnSpin');
@@ -400,46 +333,35 @@
     wrap.className = 'field';
     wrap.innerHTML = `
       <label>選項 ${i}</label>
-      <input type="text" inputmode="text" autocomplete="off" placeholder="例如：火鍋" />
+      <input type="text" autocomplete="off" placeholder="例如：火鍋" />
     `;
     const inp = wrap.querySelector('input');
-    inp.addEventListener('input', updateStartState);
+    inp.addEventListener('input', () => updateStartState());
     inputEls.push(inp);
     inputs.appendChild(wrap);
   }
 
-  // 手繪水彩配色（柔和）
   const baseColors = [
-    '#f6d36a', // warm yellow
-    '#bfe7d0', // mint
-    '#bfe0f6', // sky
-    '#c9c1f6', // lavender
-    '#f2c2d7', // pink
-    '#f3d7b7', // peach
-    '#c8f0c2', // light green
-    '#bfeff0', // aqua
+    '#f6d36a',
+    '#bfe7d0',
+    '#bfe0f6',
+    '#c9c1f6',
+    '#f2c2d7',
+    '#f3d7b7',
+    '#c8f0c2',
+    '#bfeff0',
   ];
 
-  // 狀態
-  let currentOptions = [];      // 最終用來轉的 options（會被倍增）
-  let segmentCount = 6;         // 4/6/8
+  let currentOptions = [];
+  let segmentCount = 6;
   let isSpinning = false;
-  let rotation = 0;             // 目前角度（deg）
+  let rotation = 0; // deg
 
-  // ===== 工具 =====
   function normalizeText(s){ return (s ?? '').trim(); }
-
-  // 先快後慢（衝出去、慢慢停）
-  function easeOutExpo(t){
-    return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
-  }
-
-  // 取得使用者填的選項（去空）
   function getRawOptions(){
     return inputEls.map(i => normalizeText(i.value)).filter(Boolean);
   }
 
-  // 倍增到 4/6/8 格，避免 2 格只剩對半
   function expandOptions(raw){
     const n = raw.length;
     if (n < 2) return { opts: [], count: 0 };
@@ -454,73 +376,103 @@
     else target = 8;
 
     const out = [];
-    for (let i=0;i<target;i++){
-      out.push(raw[i % n]);
-    }
+    for (let i=0;i<target;i++) out.push(raw[i % n]);
     return { opts: out, count: target };
   }
 
-  // 建立 conic-gradient + 分隔線 + 標籤
-  function renderWheel(opts){
-    segmentCount = opts.length;
+  // 先快後慢（更「明顯慢慢停」）
+  function easeOutCubic(t){
+    return 1 - Math.pow(1 - t, 3);
+  }
 
-    // conic-gradient（每格一色）
-    const segAngle = 360 / segmentCount;
+  // 指標在正上方(0deg)。扇形是 from -90deg 畫的。
+  // 要讓 idx 的中心對準上方：rot ≡ 90 - (idx*seg + seg/2)
+  function rotationForIndexCenter(idx){
+    const seg = 360 / segmentCount;
+    return 90 - (idx * seg + seg/2);
+  }
 
-    // 讓 0 號格「中心」對準指標（上方），因此從 -90deg 開始畫
+  // 讓 end%360 = targetNorm 的最小正向 delta
+  function deltaForward(currentDeg, targetDeg){
+    const cur = ((currentDeg % 360) + 360) % 360;
+    const tar = ((targetDeg % 360) + 360) % 360;
+    let d = tar - cur;
+    if (d < 0) d += 360;
+    return d;
+  }
+
+  function buildGradient(opts){
+    const seg = 360 / opts.length;
     const stops = [];
-    for (let i=0;i<segmentCount;i++){
+    for (let i=0;i<opts.length;i++){
       const c = baseColors[i % baseColors.length];
-      const a0 = (i * segAngle).toFixed(3);
-      const a1 = ((i+1) * segAngle).toFixed(3);
-
-      // 做一點水彩深淺變化（同色系）
-      // 這裡用多層透明白來「髒髒水彩」的感覺
+      const a0 = (i * seg).toFixed(3);
+      const a1 = ((i+1) * seg).toFixed(3);
       stops.push(`${c} ${a0}deg ${a1}deg`);
     }
+    face.style.background = `conic-gradient(from -90deg, ${stops.join(',')})`;
+  }
 
-    face.style.background =
-      `conic-gradient(from -90deg, ${stops.join(',')})`;
+  function buildSpokes(count){
+    spokesSvg.innerHTML = '';
+    const seg = 360 / count;
 
-    // 重新做 spokes
-    spokes.innerHTML = '';
-    for (let i=0;i<segmentCount;i++){
-      const s = document.createElement('div');
-      s.className = 'spoke';
-      s.style.transform = `translate(-50%, -100%) rotate(${i * segAngle}deg)`;
-      spokes.appendChild(s);
+    // 圓邊
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute('cx', '50');
+    circle.setAttribute('cy', '50');
+    circle.setAttribute('r', '49');
+    circle.setAttribute('fill', 'none');
+    circle.setAttribute('stroke', 'rgba(0,0,0,.20)');
+    circle.setAttribute('stroke-width', '1.6');
+    spokesSvg.appendChild(circle);
+
+    // 從中心到圓邊的線（同一個 SVG，跟底色一起轉）
+    for (let i=0;i<count;i++){
+      const ang = (i * seg - 90) * Math.PI / 180; // -90 讓 0 在上
+      const x = 50 + Math.cos(ang) * 49;
+      const y = 50 + Math.sin(ang) * 49;
+
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute('x1', '50');
+      line.setAttribute('y1', '50');
+      line.setAttribute('x2', String(x));
+      line.setAttribute('y2', String(y));
+      line.setAttribute('stroke', 'rgba(0,0,0,.55)');
+      line.setAttribute('stroke-width', '1.9');
+      line.setAttribute('stroke-linecap', 'round');
+      spokesSvg.appendChild(line);
     }
+  }
 
-    // 重新做 labels：文字保持正向（不跟著扭）
+  function buildLabels(opts){
     labels.innerHTML = '';
-    const r = 0.62; // 距離中心半徑比例
-    for (let i=0;i<segmentCount;i++){
-      const angle = i * segAngle + segAngle/2 - 90; // -90: 0 在上方
+    const count = opts.length;
+    const seg = 360 / count;
+
+    const radius = 0.62; // 文字距離中心
+    const wheelPx = wheel.clientWidth;
+
+    for (let i=0;i<count;i++){
+      const angle = i * seg + seg/2 - 90;
       const lab = document.createElement('div');
       lab.className = 'label';
       lab.textContent = opts[i];
 
-      // 先旋轉到該扇形，再往外推，再反向旋轉讓字正
       lab.style.transform =
-        `rotate(${angle}deg) translate(${(wheel.clientWidth/2)*r}px) rotate(${-angle}deg) translate(-50%, -50%)`;
+        `rotate(${angle}deg) translate(${(wheelPx/2)*radius}px) rotate(${-angle}deg) translate(-50%, -50%)`;
 
       labels.appendChild(lab);
     }
   }
 
-  // 依照指標（上方）回推目前選到哪一格
-  function getSelectedIndex(rotDeg){
-    const segAngle = 360 / segmentCount;
-    // 指標固定在 0deg（上方），輪盤轉動 rotDeg
-    // 轉盤上「正上方」對應的扇形 = 以 -rotDeg 來看原始扇形位置
-    let a = ((-rotDeg) % 360 + 360) % 360;   // 0..359
-    // a=0 表示扇形 0 的中心線在上方，但我們用分界線切割，
-    // 加上半個扇形角度，讓取整對準中心
-    a = (a + segAngle/2) % 360;
-    return Math.floor(a / segAngle) % segmentCount;
+  function renderWheel(opts){
+    segmentCount = opts.length;
+    buildGradient(opts);
+    buildSpokes(segmentCount);
+    buildLabels(opts);
   }
 
-  // 套用按鈕：把輸入轉成輪盤
   function applyOptions(){
     const raw = getRawOptions();
     const { opts, count } = expandOptions(raw);
@@ -528,8 +480,8 @@
     if (count < 2){
       currentOptions = [];
       resultEl.textContent = '結果是：—';
-      renderWheel(['請填至少兩個']); // 預設顯示
-      wheel.style.opacity = 0.8;
+      renderWheel(['請填至少兩個']);
+      wheel.style.opacity = 0.85;
       btnSpin.disabled = true;
       return;
     }
@@ -537,18 +489,15 @@
     currentOptions = opts.slice();
     wheel.style.opacity = 1;
     renderWheel(currentOptions);
-    btnSpin.disabled = false;
-
-    // 如果現在結果顯示的是舊的，先清一下
     resultEl.textContent = '結果是：—';
+    updateStartState();
   }
 
   function updateStartState(){
     const raw = getRawOptions();
-    btnSpin.disabled = (raw.length < 2) || isSpinning || (currentOptions.length < 2);
+    btnSpin.disabled = isSpinning || raw.length < 2 || currentOptions.length < 2;
   }
 
-  // 轉動：先快後慢
   function spin(){
     if (isSpinning) return;
     if (currentOptions.length < 2) return;
@@ -558,54 +507,42 @@
     btnApply.disabled = true;
     btnClear.disabled = true;
 
-    const segAngle = 360 / segmentCount;
+    const count = segmentCount;
 
-    // 隨機選一格（最終結果）
-    const targetIndex = Math.floor(Math.random() * segmentCount);
+    // 隨機目標 index
+    const targetIndex = Math.floor(Math.random() * count);
 
-    // 要讓 targetIndex 的「中心」停在上方指標
-    // 目前 rotation 可能不是 0，先取現在的 rotation
     const start = rotation;
 
-    // 將輪盤轉到目標：需要使得 getSelectedIndex(rotationEnd) === targetIndex
-    // 我們可以直接把 rotationEnd 設成讓扇形中心對上方：
-    // 扇形中心角（以 from -90deg 繪製）在：(-90 + targetIndex*seg + seg/2)
-    // 要讓它到 0deg（上方），輪盤旋轉 rot 會把該角度 + rot
-    // => (-90 + idx*seg + seg/2) + rot ≡ 0  (mod 360)
-    // => rot ≡ 90 - (idx*seg + seg/2)
-    const targetBase = 90 - (targetIndex * segAngle + segAngle/2);
+    // 目標停止角（中心對準上方指標）
+    const targetBase = rotationForIndexCenter(targetIndex);
 
-    // 加多圈讓它轉夠爽：6~10 圈
-    const extraTurns = (6 + Math.floor(Math.random()*5)) * 360;
+    // 追加多圈（更「先快後慢」體感）
+    const extraTurns = (7 + Math.floor(Math.random()*5)) * 360;
 
-    // 讓轉動方向固定為順時針（正角度）
-    // 目前 rotation 可能已經很大，targetBase 落在 -180..180，改成對應到「下一個」順時針位置
-    const currentNorm = ((start % 360) + 360) % 360;
-    let targetNorm = ((targetBase % 360) + 360) % 360;
+    const delta = deltaForward(start, targetBase);
+    const end = start + extraTurns + delta;
 
-    // 要找一個 rotationEnd > start 的最小值，使 end%360 = targetNorm
-    let deltaToTarget = targetNorm - currentNorm;
-    if (deltaToTarget < 0) deltaToTarget += 360;
-
-    const rotationEnd = start + extraTurns + deltaToTarget;
-
-    // 動畫時間（ms）
-    const duration = 3200 + Math.floor(Math.random()*600);
+    const duration = 3600 + Math.floor(Math.random()*700);
     const t0 = performance.now();
 
     function tick(now){
       const t = Math.min(1, (now - t0) / duration);
-      const eased = easeOutExpo(t);
+      const eased = easeOutCubic(t);
 
-      rotation = start + (rotationEnd - start) * eased;
+      rotation = start + (end - start) * eased;
       wheel.style.transform = `rotate(${rotation}deg)`;
 
       if (t < 1){
         requestAnimationFrame(tick);
       } else {
-        // 結果
-        const idx = getSelectedIndex(rotation);
-        resultEl.textContent = `結果是：${currentOptions[idx]}`;
+        // 停止後做一次「精準校正」：直接對齊到 targetBase
+        // 這一步讓指針必定停在選項中心，不會有半格偏差
+        const finalDelta = deltaForward(rotation, targetBase);
+        rotation = rotation + finalDelta;
+        wheel.style.transform = `rotate(${rotation}deg)`;
+
+        resultEl.textContent = `結果是：${currentOptions[targetIndex]}`;
 
         isSpinning = false;
         btnApply.disabled = false;
@@ -624,18 +561,19 @@
     wheel.style.transform = `rotate(0deg)`;
     resultEl.textContent = '結果是：—';
     renderWheel(['請填至少兩個']);
-    wheel.style.opacity = 0.8;
+    wheel.style.opacity = 0.85;
     btnSpin.disabled = true;
+    btnApply.disabled = false;
+    btnClear.disabled = false;
   }
 
-  // 綁定
   btnApply.addEventListener('click', applyOptions);
   btnSpin.addEventListener('click', spin);
   btnClear.addEventListener('click', clearAll);
 
   // 初始
   renderWheel(['請填至少兩個']);
-  wheel.style.opacity = 0.8;
+  wheel.style.opacity = 0.85;
 })();
 </script>
 </body>
