@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>決定輪盤</title>
+  <style>
+    body {
+      font-family: "Comic Sans MS", "Noto Sans TC", sans-serif;
+      background: #f6f1e9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      margin-bottom: 12px;
+    }
+
+    .wheel-wrapper {
+      position: relative;
+      width: 280px;
+      height: 280px;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-bottom: 24px solid #333;
+      z-index: 10;
+    }
+
+    canvas {
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      font-size: 18px;
+      border: 3px solid #333;
+      border-radius: 12px;
+      background: #ffcf70;
+      cursor: pointer;
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+
+    .result {
+      margin-top: 12px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>今天要選什麼？</h1>
+
+<div class="wheel-wrapper">
+  <div class="pointer"></div>
+  <canvas id="wheel" width="280" height="280"></canvas>
+</div>
+
+<button onclick="spin()">轉一下</button>
+<div class="result" id="result"></div>
+
+<script>
+  const options = [
+    "選項一",
+    "選項二",
+    "選項三",
+    "選項四",
+    "選項五",
+    "選項六",
+    "選項七",
+    "選項八"
+  ];
+
+  const canvas = document.getElementById("wheel");
+  const ctx = canvas.getContext("2d");
+  const radius = canvas.width / 2;
+  const slice = (2 * Math.PI) / options.length;
+  let angle = 0;
+
+  function drawWheel() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    options.forEach((text, i) => {
+      const start = angle + i * slice;
+      const end = start + slice;
+
+      ctx.beginPath();
+      ctx.moveTo(radius, radius);
+      ctx.arc(radius, radius, radius - 4, start, end);
+      ctx.fillStyle = i % 2 === 0 ? "#ffd9c9" : "#c9e4ff";
+      ctx.fill();
+      ctx.strokeStyle = "#333";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(radius, radius);
+      ctx.rotate(start + slice / 2);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#333";
+      ctx.font = "16px sans-serif";
+      ctx.fillText(text, radius - 16, 6);
+      ctx.restore();
+    });
+  }
+
+  drawWheel();
+
+  function spin() {
+    const spins = Math.random() * 2000 + 2000;
+    const startAngle = angle;
+    const startTime = performance.now();
+
+    function animate(time) {
+      const t = Math.min((time - startTime) / 2000, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      angle = startAngle + (spins * ease * Math.PI / 180);
+      drawWheel();
+
+      if (t < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        const index = Math.floor(
+          options.length - (angle % (2 * Math.PI)) / slice
+        ) % options.length;
+        document.getElementById("result").innerText =
+          "結果是：" + options[index];
+      }
+    }
+
+    requestAnimationFrame(animate);
+  }
+</script>
+
+</body>
+</html>
